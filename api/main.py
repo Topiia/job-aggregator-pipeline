@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router
+from api.middleware import RateLimitMiddleware
 
 app = FastAPI(
     title="Job Aggregator API",
@@ -27,3 +28,6 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
+# Enforce globally scoped memory-backed IP rate limits aggressively restricting spam
+app.add_middleware(RateLimitMiddleware)
