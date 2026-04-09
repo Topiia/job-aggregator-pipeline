@@ -43,3 +43,5 @@ tmp/
 
 # OS / misc
 *.cache
+
+chromedriver.exe
