@@ -37,6 +37,10 @@ logger = get_logger(__name__)
 _SOURCE = "arbeitnow"
 _URL = config.ARBEITNOW_URL
 
+# Hard cap on jobs returned by this client.
+# Applied after parsing, before the list is handed to the normalizer.
+_MAX_JOBS = 50
+
 
 # ---------------------------------------------------------------------------
 # Internal request helper
@@ -165,5 +169,16 @@ def fetch_jobs(limiter: RateLimiter) -> list[dict]:
         logger.warning("[%s] API returned an empty list of jobs", _SOURCE)
         return []
 
-    logger.info("[%s] Fetched %d raw job records", _SOURCE, len(jobs))
+    raw_count = len(jobs)
+    if raw_count > _MAX_JOBS:
+        jobs = jobs[:_MAX_JOBS]
+        logger.info(
+            "[%s] Fetched %d jobs, limited to %d for controlled processing",
+            _SOURCE,
+            raw_count,
+            len(jobs),
+        )
+    else:
+        logger.info("[%s] Fetched %d raw job records", _SOURCE, raw_count)
+
     return jobs
