@@ -53,3 +53,6 @@ data/jobs.json
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+
+*.db-wal
+*.db-shm
