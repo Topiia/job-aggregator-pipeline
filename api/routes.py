@@ -1,5 +1,72 @@
 """
 API route definitions for the Job Aggregator.
 
-Implemented in a later phase alongside api/main.py.
+Strictly read-only mapped endpoint handlers.
 """
+
+from fastapi import APIRouter, HTTPException, Query
+
+from api.schemas import JobResponse, JobsListResponse, StatsResponse
+from src.core.logger import get_logger
+from src.db import operations
+
+logger = get_logger(__name__)
+
+router = APIRouter()
+
+
+@router.get("/jobs", response_model=JobsListResponse)
+def get_jobs(
+    source: str | None = Query(None, description="Filter by generic source name"),
+    keyword: str | None = Query(None, description="Match title or company name"),
+    limit: int = Query(20, description="Max job objects returned", le=50, ge=1),
+):
+    """
+    Retrieve jobs across the aggregated database limits bounded correctly.
+    """
+    logger.info("Hit /jobs -> source=%s, keyword=%s, limit=%s", source, keyword, limit)
+
+    # Note: query parameter defaults enforce the max=50 bounds dynamically, 
+    # but the DB layer ensures limits exist natively regardless of controller bypass.
+    jobs = operations.get_jobs(source=source, keyword=keyword, limit=limit)
+    
+    logger.info("Returning %d jobs", len(jobs))
+    return {
+        "count": len(jobs),
+        "results": jobs
+    }
+
+
+@router.get("/jobs/{job_id}", response_model=JobResponse)
+def get_job_by_id(job_id: int):
+    """
+    Retrieve a singular specific Job execution via ID strictly bounded.
+    """
+    logger.info("Hit /jobs/%d", job_id)
+    
+    job = operations.get_job_by_id(job_id)
+    if not job:
+        logger.warning("/jobs/%d -> NOT FOUND", job_id)
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    logger.info("Returning Job %d successfully", job_id)
+    return job
+
+
+@router.get("/stats", response_model=StatsResponse)
+def get_stats():
+    """
+    Retrieve general structural system statistics securely bounded natively.
+    """
+    logger.info("Hit /stats")
+    
+    stats_data = operations.get_stats()
+    
+    # Map internal dictionary format to StatsResponse explicitly defined representation.
+    payload = {
+        "total_jobs": stats_data.get("total", 0),
+        "sources": stats_data.get("by_source", {})
+    }
+    
+    logger.info("Returning standard metrics format successfully")
+    return payload

@@ -98,23 +98,24 @@ def upsert_jobs(jobs: list[dict[str, Any]]) -> int:
 def get_jobs(
     source: str | None = None,
     keyword: str | None = None,
-    page: int = 1,
-    per_page: int = 20,
+    limit: int = 20,
 ) -> list[Job]:
     """
-    Retrieve paginated job records with optional filters.
+    Retrieve job records with exact limitations bounding outputs.
 
     Parameters
     ----------
     source   : Filter by source name (e.g. 'remoteok').
     keyword  : Case-insensitive substring match against title and company.
-    page     : 1-indexed page number.
-    per_page : Records per page.
+    limit    : Max records (capped at 50 internally).
 
     Returns
     -------
     list[Job]
     """
+    # Enforce API limits
+    limit = max(1, min(limit, 50))
+    
     with get_session() as session:
         query = session.query(Job)
 
@@ -131,16 +132,12 @@ def get_jobs(
                 )
             )
 
-        offset = (page - 1) * per_page
         jobs = (
-            query.order_by(Job.scraped_at.desc())
-            .offset(offset)
-            .limit(per_page)
+            query.order_by(Job.posted_at.desc())
+            .limit(limit)
             .all()
         )
 
-        # Detach from session before returning so callers don't need an
-        # active session to access the objects.
         session.expunge_all()
         return jobs
 
@@ -154,7 +151,7 @@ def get_job_by_id(job_id: int) -> Job | None:
         return job
 
 
-def get_job_stats() -> dict[str, Any]:
+def get_stats() -> dict[str, Any]:
     """
     Return aggregated statistics about stored jobs.
 
