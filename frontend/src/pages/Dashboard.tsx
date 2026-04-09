@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Job, Stats } from "../types/job";
 import { fetchJobs, fetchStats } from "../api/client";
 import StatsPanel from "../components/StatsPanel";
@@ -13,57 +13,48 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const [keyword, setKeyword] = useState("");
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [source, setSource] = useState("");
   const [limit, setLimit] = useState(20);
 
-  // ── Fetch stats once on mount ──────────────────────────────────────────────
+  const hasFetchedStats = useRef(false);
+
+  // ── Debounce keyword isolated ──────────────────────────────────────────────
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedKeyword(keyword);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
+  // ── Fetch stats ONCE (Strict Mode safe) ────────────────────────────────────
+  useEffect(() => {
+    if (hasFetchedStats.current) return;
+    hasFetchedStats.current = true;
+
     fetchStats()
       .then(setStats)
       .catch(() => {
-        // Stats failure is non-critical — don't block the whole page
+        // Stats failure is non-critical
         console.error("Failed to load stats");
       });
   }, []);
 
-  // ── Fetch jobs (re-runs when source or limit changes immediately) ──────────
-  const loadJobs = useCallback(
-    (kw: string, src: string, lim: number) => {
-      setLoading(true);
-      setError(null);
-      fetchJobs({ keyword: kw || undefined, source: src || undefined, limit: lim })
-        .then((data) => {
-          setJobs(data);
-          setLoading(false);
-        })
-        .catch(() => {
-          setError("Failed to load data");
-          setLoading(false);
-        });
-    },
-    []
-  );
-
-  // Initial load
+  // ── Fetch jobs on mount or filter change ───────────────────────────────────
   useEffect(() => {
-    loadJobs(keyword, source, limit);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Re-fetch when source or limit changes (no debounce needed)
-  useEffect(() => {
-    loadJobs(keyword, source, limit);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [source, limit]);
-
-  // Re-fetch keyword with 300ms debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadJobs(keyword, source, limit);
-    }, 300);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyword]);
+    setLoading(true);
+    setError(null);
+    
+    fetchJobs({ source, keyword: debouncedKeyword, limit })
+      .then((data) => {
+        setJobs(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load data");
+        setLoading(false);
+      });
+  }, [source, debouncedKeyword, limit]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
