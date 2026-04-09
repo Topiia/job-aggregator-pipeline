@@ -15,7 +15,15 @@ export default function JobCard({ title, company, source, posted_at, url }: Prop
         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
           {source}
         </span>
-        <span className="text-xs text-gray-400 ml-auto">{posted_at}</span>
+        <span className="text-xs text-gray-400 ml-auto">
+          {new Date(posted_at).toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
       </div>
       <a
         href={url}

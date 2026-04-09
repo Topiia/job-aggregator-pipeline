@@ -28,6 +28,11 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [keyword]);
 
+  // ── Reset limit on filter change ───────────────────────────────────────────
+  useEffect(() => {
+    setLimit(20);
+  }, [keyword, source]);
+
   // ── Fetch stats ONCE (Strict Mode safe) ────────────────────────────────────
   useEffect(() => {
     if (hasFetchedStats.current) return;
@@ -43,6 +48,8 @@ export default function Dashboard() {
 
   // ── Fetch jobs on mount or filter change ───────────────────────────────────
   useEffect(() => {
+    if (debouncedKeyword && debouncedKeyword.length < 2) return;
+
     const currentRequestId = ++requestIdRef.current;
 
     setLoading(true);
@@ -105,6 +112,12 @@ export default function Dashboard() {
 
         {/* Job Grid */}
         <section>
+          {!loading && !error && stats && (
+            <p className="text-sm text-gray-600 mb-4 font-medium">
+              Showing {jobs.length} of {stats.total_stored_jobs} jobs
+            </p>
+          )}
+
           {loading && (
             <p className="text-center mt-10 text-gray-500">Loading...</p>
           )}
@@ -118,11 +131,24 @@ export default function Dashboard() {
           )}
 
           {!loading && !error && jobs.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {jobs.map((job) => (
-                <JobCard key={job.id} {...job} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {jobs.map((job) => (
+                  <JobCard key={job.id} {...job} />
+                ))}
+              </div>
+
+              {stats && jobs.length < stats.total_stored_jobs && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => setLimit((prev) => prev + 20)}
+                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm hover:bg-gray-50 font-medium transition"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 
