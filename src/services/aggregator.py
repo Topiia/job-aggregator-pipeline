@@ -7,7 +7,7 @@ Currently processes a sequence of API sources.
 
 from typing import Any
 
-from src.api_clients import arbeitnow, remoteok
+from src.api_clients import arbeitnow, hackernews, remoteok
 from src.core.logger import get_logger
 from src.core.rate_limiter import (
     CriticalHTTPError,
@@ -50,6 +50,7 @@ def run_aggregation() -> dict[str, Any]:
     sources = [
         ("remoteok", remoteok),
         ("arbeitnow", arbeitnow),
+        ("hackernews", hackernews),
     ]
 
     # 3. Source Execution Loop
