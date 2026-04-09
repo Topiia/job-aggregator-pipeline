@@ -25,5 +25,5 @@ class JobsListResponse(BaseModel):
 
 
 class StatsResponse(BaseModel):
-    total_jobs: int
+    total_stored_jobs: int
     sources: Dict[str, int]

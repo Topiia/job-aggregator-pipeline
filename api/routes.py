@@ -19,15 +19,20 @@ router = APIRouter()
 def get_jobs(
     source: str | None = Query(None, description="Filter by generic source name"),
     keyword: str | None = Query(None, description="Match title or company name"),
-    limit: int = Query(20, description="Max job objects returned", le=50, ge=1),
+    limit: int = Query(20, description="Max job objects returned"),
 ):
     """
     Retrieve jobs across the aggregated database limits bounded correctly.
     """
     logger.info("Hit /jobs -> source=%s, keyword=%s, limit=%s", source, keyword, limit)
 
-    # Note: query parameter defaults enforce the max=50 bounds dynamically, 
-    # but the DB layer ensures limits exist natively regardless of controller bypass.
+    # 1) Soft-cap limits gracefully allowing them without discarding request natively
+    if limit > 50:
+        logger.info("Limit exceeded. Capped to 50.")
+        limit = 50
+    if limit < 1:
+        limit = 1
+
     jobs = operations.get_jobs(source=source, keyword=keyword, limit=limit)
     
     logger.info("Returning %d jobs", len(jobs))
@@ -64,7 +69,7 @@ def get_stats():
     
     # Map internal dictionary format to StatsResponse explicitly defined representation.
     payload = {
-        "total_jobs": stats_data.get("total", 0),
+        "total_stored_jobs": stats_data.get("total", 0),
         "sources": stats_data.get("by_source", {})
     }
     
