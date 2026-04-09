@@ -121,6 +121,17 @@ def get_jobs(
     with get_session() as session:
         query = session.query(Job)
 
+        from datetime import datetime, timedelta
+        
+        # Smart Data Windowing: Enforce recency constraints globally
+        if source or keyword:
+            cutoff = datetime.utcnow() - timedelta(days=90)
+        else:
+            cutoff = datetime.utcnow() - timedelta(days=10)
+            
+        # ISO-8601 strings allow direct lexicographical comparison securely natively
+        query = query.filter(Job.posted_at >= cutoff.isoformat())
+
         if source:
             query = query.filter(Job.source == source)
 

@@ -146,9 +146,16 @@ export default function Dashboard() {
         {/* Job Grid */}
         <section>
           {!loading && !error && stats && (
-            <p className="text-sm text-gray-600 mb-4 font-medium">
-              Showing {jobs.length} of {stats.total_stored_jobs} jobs
-            </p>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 font-medium">
+                Showing {jobs.length} of {stats.total_stored_jobs} jobs
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {debouncedKeyword || source 
+                  ? "Showing results from last 90 days" 
+                  : "Showing recent jobs (last 10 days)"}
+              </p>
+            </div>
           )}
 
           {loading && (
