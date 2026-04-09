@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual environments
+venv/
+.env
+
+# Data files
+data/*.db
+data/*.csv
+data/last_run.json
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Agent / temporary files
+*.txt
+*.tmp
+*.bak
+*.swp
+
+# Debug / test artifacts
+verify_*.py
+test_*.log
+
+# Random generated outputs
+output/
+temp/
+tmp/
+
+# OS / misc
+*.cache
