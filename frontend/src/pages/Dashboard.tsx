@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [limit, setLimit] = useState(20);
 
   const hasFetchedStats = useRef(false);
+  const requestIdRef = useRef(0);
 
   // ── Debounce keyword isolated ──────────────────────────────────────────────
   useEffect(() => {
@@ -42,17 +43,26 @@ export default function Dashboard() {
 
   // ── Fetch jobs on mount or filter change ───────────────────────────────────
   useEffect(() => {
+    const currentRequestId = ++requestIdRef.current;
+
     setLoading(true);
     setError(null);
     
     fetchJobs({ source, keyword: debouncedKeyword, limit })
       .then((data) => {
-        setJobs(data);
-        setLoading(false);
+        if (currentRequestId === requestIdRef.current) {
+          setJobs(data);
+        }
       })
       .catch(() => {
-        setError("Failed to load data");
-        setLoading(false);
+        if (currentRequestId === requestIdRef.current) {
+          setError("Failed to load data");
+        }
+      })
+      .finally(() => {
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
       });
   }, [source, debouncedKeyword, limit]);
 
