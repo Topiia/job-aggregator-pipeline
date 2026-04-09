@@ -9,6 +9,7 @@ from this file — no module defines its own constants.
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Tuple
+import os
 
 
 # ---------------------------------------------------------------------------
@@ -45,16 +46,35 @@ class Config:
     # ------------------------------------------------------------------
     # API / Scraper URLs
     # ------------------------------------------------------------------
-    REMOTEOK_URL: str = "https://remoteok.com/api"
-    ARBEITNOW_URL: str = "https://www.arbeitnow.com/api/job-board-api"
-    HACKERNEWS_JOBSTORIES_URL: str = (
-        "https://hacker-news.firebaseio.com/v0/jobstories.json"
+    REMOTEOK_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "REMOTEOK_URL",
+            "https://remoteok.com/api"
+        )
     )
-    HACKERNEWS_ITEM_URL: str = (
-        "https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+    ARBEITNOW_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "ARBEITNOW_URL",
+            "https://www.arbeitnow.com/api/job-board-api"
+        )
     )
-    WWR_URL: str = (
-        "https://weworkremotely.com/categories/remote-programming-jobs"
+    HACKERNEWS_JOBSTORIES_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "HACKERNEWS_JOBSTORIES_URL",
+            "https://hacker-news.firebaseio.com/v0/jobstories.json"
+        )
+    )
+    HACKERNEWS_ITEM_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "HACKERNEWS_ITEM_URL",
+            "https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+        )
+    )
+    WWR_URL: str = field(
+        default_factory=lambda: os.getenv(
+            "WWR_URL",
+            "https://weworkremotely.com/categories/remote-programming-jobs"
+        )
     )
 
     # ------------------------------------------------------------------
