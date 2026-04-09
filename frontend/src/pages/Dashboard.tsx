@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [source, setSource] = useState("");
   const [limit, setLimit] = useState(20);
   const [offset, setOffset] = useState(0);
+  const [days, setDays] = useState<string>("");
 
   const hasFetchedStats = useRef(false);
   const requestIdRef = useRef(0);
@@ -35,7 +36,7 @@ export default function Dashboard() {
     setLimit(20);
     setOffset(0);
     setJobs([]);
-  }, [keyword, source]);
+  }, [keyword, source, days]);
 
   // ── Fetch stats ONCE (Strict Mode safe) ────────────────────────────────────
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     
-    fetchJobs({ source, keyword: debouncedKeyword, limit, offset })
+    fetchJobs({ source, keyword: debouncedKeyword, limit, offset, days })
       .then((data) => {
         if (currentRequestId === requestIdRef.current) {
           if (offset === 0) {
@@ -104,7 +105,7 @@ export default function Dashboard() {
           setLoading(false);
         }
       });
-  }, [source, debouncedKeyword, limit, offset]);
+  }, [source, debouncedKeyword, limit, offset, days]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -137,9 +138,11 @@ export default function Dashboard() {
             keyword={keyword}
             source={source}
             limit={limit}
+            days={days}
             onKeywordChange={setKeyword}
             onSourceChange={setSource}
             onLimitChange={setLimit}
+            onDaysChange={setDays}
           />
         </section>
 

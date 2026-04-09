@@ -99,7 +99,8 @@ def get_jobs(
     source: str | None = None,
     keyword: str | None = None,
     limit: int = 20,
-    offset: int = 0
+    offset: int = 0,
+    days: int | None = None
 ) -> list[Job]:
     """
     Retrieve job records with exact limitations bounding outputs.
@@ -110,6 +111,7 @@ def get_jobs(
     keyword  : Case-insensitive substring match against title and company.
     limit    : Max records (capped at 50 internally).
     offset   : Dataset cursor mapping starting bound securely.
+    days     : Overrides chronological limit dynamically bounding time windows explicitly.
 
     Returns
     -------
@@ -124,7 +126,9 @@ def get_jobs(
         from datetime import datetime, timedelta
         
         # Smart Data Windowing: Enforce recency constraints globally
-        if source or keyword:
+        if days is not None:
+            cutoff = datetime.utcnow() - timedelta(days=max(1, days))
+        elif source or keyword:
             cutoff = datetime.utcnow() - timedelta(days=90)
         else:
             cutoff = datetime.utcnow() - timedelta(days=10)
