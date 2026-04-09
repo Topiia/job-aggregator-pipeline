@@ -36,6 +36,10 @@ logger = get_logger(__name__)
 _SOURCE = "remoteok"
 _URL = config.REMOTEOK_URL
 
+# Hard cap on jobs returned by this client.
+# Applied after parsing, before the list is handed to the normalizer.
+_MAX_JOBS = 50
+
 
 # ---------------------------------------------------------------------------
 # Internal request helper
@@ -169,6 +173,18 @@ def fetch_jobs(limiter: RateLimiter) -> list[dict]:
 
     # First element is always API metadata — skip it.
     jobs = data[1:]
+    raw_count = len(jobs)
 
-    logger.info("[%s] Fetched %d raw job records", _SOURCE, len(jobs))
+    # Enforce hard volume cap: fetch → parse → LIMIT → normalise → store.
+    if raw_count > _MAX_JOBS:
+        jobs = jobs[:_MAX_JOBS]
+        logger.info(
+            "[%s] Fetched %d jobs, limited to %d for controlled processing",
+            _SOURCE,
+            raw_count,
+            _MAX_JOBS,
+        )
+    else:
+        logger.info("[%s] Fetched %d raw job records", _SOURCE, raw_count)
+
     return jobs
