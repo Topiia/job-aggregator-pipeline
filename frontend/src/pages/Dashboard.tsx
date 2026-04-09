@@ -20,6 +20,7 @@ export default function Dashboard() {
 
   const hasFetchedStats = useRef(false);
   const requestIdRef = useRef(0);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
   // ── Debounce keyword isolated ──────────────────────────────────────────────
   useEffect(() => {
@@ -48,6 +49,31 @@ export default function Dashboard() {
         console.error("Failed to load stats");
       });
   }, []);
+
+  // ── Infinite Scroll Observer ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!loaderRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // Prevent over-fetch boundaries and guard against overlapping requests
+        if (entry.isIntersecting && !loading) {
+          if (stats && jobs.length >= stats.total_stored_jobs) return;
+          setOffset((prev) => prev + limit);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(loaderRef.current);
+
+    return () => observer.disconnect();
+  }, [loading, limit, stats, jobs.length]);
 
   // ── Fetch jobs on mount or filter change ───────────────────────────────────
   useEffect(() => {
@@ -146,14 +172,7 @@ export default function Dashboard() {
               </div>
 
               {stats && jobs.length < stats.total_stored_jobs && (
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={() => setOffset((prev) => prev + limit)}
-                    className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm hover:bg-gray-50 font-medium transition"
-                  >
-                    Load More
-                  </button>
-                </div>
+                <div ref={loaderRef} className="h-4 w-full mt-4"></div>
               )}
             </>
           )}
