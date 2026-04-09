@@ -28,7 +28,7 @@ def get_jobs(
 
     # 1) Soft-cap limits gracefully allowing them without discarding request natively
     if limit > 50:
-        logger.info("Limit exceeded. Capped to 50.")
+        logger.warning("Limit exceeded. Capped to 50.")
         limit = 50
     if limit < 1:
         limit = 1

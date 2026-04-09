@@ -13,6 +13,7 @@ from pathlib import Path
 from src.core.config import config
 from src.core.logger import get_logger
 from src.services.aggregator import run_aggregation
+from scripts.export_data import export_data
 
 logger = get_logger(__name__)
 
@@ -106,7 +107,11 @@ def run_daily_pipeline() -> None:
     summary = run_aggregation()
     
     if summary.get("stop_reason") is None:
-        logger.info("Aggregator finished cleanly. Recording successful run.")
+        logger.info("Aggregator finished cleanly. Executing DB export logic.")
+        export_data()
+        logger.info("System exported databases to flat files securely.")
+        
+        logger.info("Recording successful run.")
         update_last_run()
     else:
         logger.warning(
