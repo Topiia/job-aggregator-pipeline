@@ -48,3 +48,8 @@ chromedriver.exe
 scripts/audit_system.py
 data/jobs.csv
 data/jobs.json
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
