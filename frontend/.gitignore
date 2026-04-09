@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Unused Vite boilerplate
+src/App.css
+src/assets/
