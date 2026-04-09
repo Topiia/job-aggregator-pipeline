@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [source, setSource] = useState("");
   const [limit, setLimit] = useState(20);
+  const [offset, setOffset] = useState(0);
 
   const hasFetchedStats = useRef(false);
   const requestIdRef = useRef(0);
@@ -28,9 +29,11 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, [keyword]);
 
-  // ── Reset limit on filter change ───────────────────────────────────────────
+  // ── Reset pagination on filter change ──────────────────────────────────────
   useEffect(() => {
     setLimit(20);
+    setOffset(0);
+    setJobs([]);
   }, [keyword, source]);
 
   // ── Fetch stats ONCE (Strict Mode safe) ────────────────────────────────────
@@ -55,10 +58,14 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     
-    fetchJobs({ source, keyword: debouncedKeyword, limit })
+    fetchJobs({ source, keyword: debouncedKeyword, limit, offset })
       .then((data) => {
         if (currentRequestId === requestIdRef.current) {
-          setJobs(data);
+          if (offset === 0) {
+            setJobs(data);
+          } else {
+            setJobs((prev) => [...prev, ...data]);
+          }
         }
       })
       .catch(() => {
@@ -71,7 +78,7 @@ export default function Dashboard() {
           setLoading(false);
         }
       });
-  }, [source, debouncedKeyword, limit]);
+  }, [source, debouncedKeyword, limit, offset]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -141,7 +148,7 @@ export default function Dashboard() {
               {stats && jobs.length < stats.total_stored_jobs && (
                 <div className="flex justify-center mt-8">
                   <button
-                    onClick={() => setLimit((prev) => prev + 20)}
+                    onClick={() => setOffset((prev) => prev + limit)}
                     className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm hover:bg-gray-50 font-medium transition"
                   >
                     Load More

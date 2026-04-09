@@ -99,6 +99,7 @@ def get_jobs(
     source: str | None = None,
     keyword: str | None = None,
     limit: int = 20,
+    offset: int = 0
 ) -> list[Job]:
     """
     Retrieve job records with exact limitations bounding outputs.
@@ -108,6 +109,7 @@ def get_jobs(
     source   : Filter by source name (e.g. 'remoteok').
     keyword  : Case-insensitive substring match against title and company.
     limit    : Max records (capped at 50 internally).
+    offset   : Dataset cursor mapping starting bound securely.
 
     Returns
     -------
@@ -135,6 +137,7 @@ def get_jobs(
         jobs = (
             query.order_by(Job.posted_at.desc())
             .limit(limit)
+            .offset(offset)
             .all()
         )
 

@@ -7,6 +7,7 @@ export type FetchJobsParams = {
   source?: string;
   keyword?: string;
   limit?: number;
+  offset?: number;
 };
 
 export async function fetchJobs(params: FetchJobsParams = {}): Promise<Job[]> {
@@ -20,6 +21,9 @@ export async function fetchJobs(params: FetchJobsParams = {}): Promise<Job[]> {
   }
   if (params.limit !== undefined) {
     query.append("limit", params.limit.toString());
+  }
+  if (params.offset !== undefined) {
+    query.append("offset", params.offset.toString());
   }
 
   const queryString = query.toString();

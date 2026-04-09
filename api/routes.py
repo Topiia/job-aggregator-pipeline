@@ -20,11 +20,12 @@ def get_jobs(
     source: str | None = Query(None, description="Filter by generic source name"),
     keyword: str | None = Query(None, description="Match title or company name"),
     limit: int = Query(20, description="Max job objects returned"),
+    offset: int = Query(0, description="Offset index for pagination")
 ):
     """
     Retrieve jobs across the aggregated database limits bounded correctly.
     """
-    logger.info("Hit /jobs -> source=%s, keyword=%s, limit=%s", source, keyword, limit)
+    logger.info("Hit /jobs -> source=%s, keyword=%s, limit=%s, offset=%s", source, keyword, limit, offset)
 
     # 1) Soft-cap limits gracefully allowing them without discarding request natively
     if limit > 50:
@@ -33,7 +34,7 @@ def get_jobs(
     if limit < 1:
         limit = 1
 
-    jobs = operations.get_jobs(source=source, keyword=keyword, limit=limit)
+    jobs = operations.get_jobs(source=source, keyword=keyword, limit=limit, offset=offset)
     
     logger.info("Returning %d jobs", len(jobs))
     return {
