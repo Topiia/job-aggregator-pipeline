@@ -5,6 +5,43 @@ import StatsPanel from "../components/StatsPanel";
 import FilterBar from "../components/FilterBar";
 import JobCard from "../components/JobCard";
 
+function SystemStatus({ lastScraped }: { lastScraped?: string }) {
+  if (!lastScraped) {
+    return <span className="text-xs font-semibold text-yellow-600">⚠️ No data extracted yet</span>;
+  }
+
+  const date = new Date(lastScraped);
+  if (isNaN(date.getTime())) {
+    return <span className="text-xs font-semibold text-yellow-600">⚠️ Invalid extraction date</span>;
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffHours = diffMs / 3600000;
+
+  let colorClass = "text-emerald-600"; // < 30 hours (Green)
+  if (diffHours >= 48) {
+    colorClass = "text-red-500"; // likely failure
+  } else if (diffHours >= 30) {
+    colorClass = "text-amber-500"; // > 30 hours (Yellow, delayed)
+  }
+
+  const full = date.toLocaleString("en-US", {
+    month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+  });
+
+  let relative = "Just now";
+  const exactDays = Math.floor(diffHours / 24);
+  if (exactDays > 0) relative = `${exactDays}d ago`;
+  else if (diffHours >= 1) relative = `${Math.floor(diffHours)}h ago`;
+  else if (diffMs > 60000) relative = `${Math.floor(diffMs / 60000)}m ago`;
+
+  return (
+    <span className={`text-xs font-medium tracking-tight ${colorClass}`}>
+      🔄 Updated {relative} • {full}
+    </span>
+  );
+}
+
 export default function Dashboard() {
   // ── Theme State
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "theme1");
@@ -164,9 +201,12 @@ export default function Dashboard() {
               <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-theme-glow1 to-theme-glow2">
                 Topia Job Aggregator
               </h1>
-              <p className="text-xs sm:text-sm text-theme-muted mt-0.5 font-medium">
-                Controlled Data Pipeline
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mt-0.5">
+                <p className="text-xs sm:text-sm text-theme-muted font-medium">
+                  Controlled Data Pipeline
+                </p>
+                {stats && <SystemStatus lastScraped={stats.last_scraped} />}
+              </div>
             </div>
           </div>
           

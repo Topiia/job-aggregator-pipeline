@@ -72,7 +72,8 @@ def get_stats():
     # Map internal dictionary format to StatsResponse explicitly defined representation.
     payload = {
         "total_stored_jobs": stats_data.get("total", 0),
-        "sources": stats_data.get("by_source", {})
+        "sources": stats_data.get("by_source", {}),
+        "last_scraped": stats_data.get("last_scraped", ""),
     }
     
     logger.info("Returning standard metrics format successfully")

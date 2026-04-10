@@ -25,9 +25,9 @@ export default function StatsPanel({ totalJobs, sources }: Props) {
   return (
     <div className="flex flex-wrap gap-4 w-full">
       <StatCard label="Total Jobs" value={totalJobs} />
-      <StatCard label="RemoteOK" value={sources.remoteok} />
-      <StatCard label="Arbeitnow" value={sources.arbeitnow} />
-      <StatCard label="HackerNews" value={sources.hackernews} />
+      <StatCard label="RemoteOK" value={sources.remoteok ?? 0} />
+      <StatCard label="Arbeitnow" value={sources.arbeitnow ?? 0} />
+      <StatCard label="HackerNews" value={sources.hackernews ?? 0} />
     </div>
   );
 }

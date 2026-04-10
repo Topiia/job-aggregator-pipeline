@@ -15,6 +15,7 @@ export type Stats = {
     arbeitnow: number;
     hackernews: number;
   };
+  last_scraped: string;
 };
 
 export type JobsResponse = {

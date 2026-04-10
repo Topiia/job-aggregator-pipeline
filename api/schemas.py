@@ -27,3 +27,4 @@ class JobsListResponse(BaseModel):
 class StatsResponse(BaseModel):
     total_stored_jobs: int
     sources: Dict[str, int]
+    last_scraped: str
