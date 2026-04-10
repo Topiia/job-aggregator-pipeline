@@ -123,18 +123,20 @@ def get_jobs(
     with get_session() as session:
         query = session.query(Job)
 
-        from datetime import datetime, timedelta
+        from sqlalchemy import func
         
         # Smart Data Windowing: Enforce recency constraints globally
         if days is not None:
-            cutoff = datetime.utcnow() - timedelta(days=max(1, days))
+            active_days = max(1, days)
         elif source or keyword:
-            cutoff = datetime.utcnow() - timedelta(days=90)
+            active_days = 90
         else:
-            cutoff = datetime.utcnow() - timedelta(days=10)
+            active_days = 10
             
-        # ISO-8601 strings allow direct lexicographical comparison securely natively
-        query = query.filter(Job.posted_at >= cutoff.isoformat())
+        # SQLite datetime() converts ISO strings to standard format for safe comparison
+        query = query.filter(
+            func.datetime(Job.posted_at) >= func.datetime('now', f'-{active_days} days')
+        )
 
         from sqlalchemy import func
 
