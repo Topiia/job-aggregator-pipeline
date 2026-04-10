@@ -18,10 +18,13 @@ export default function Dashboard() {
   const [limit, setLimit] = useState(20);
   const [offset, setOffset] = useState(0);
   const [days, setDays] = useState<string>("");
+  
+  const [hasMore, setHasMore] = useState(true);
 
   const hasFetchedStats = useRef(false);
   const requestIdRef = useRef(0);
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const isFetchingRef = useRef(false);
 
   // ── Debounce keyword isolated ──────────────────────────────────────────────
   useEffect(() => {
@@ -36,6 +39,8 @@ export default function Dashboard() {
     setLimit(20);
     setOffset(0);
     setJobs([]);
+    setHasMore(true);
+    isFetchingRef.current = false;
   }, [keyword, source, days]);
 
   // ── Fetch stats ONCE (Strict Mode safe) ────────────────────────────────────
@@ -54,13 +59,19 @@ export default function Dashboard() {
   // ── Infinite Scroll Observer ───────────────────────────────────────────────
   useEffect(() => {
     if (!loaderRef.current) return;
+    if (!hasMore) return; // double guard
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         // Prevent over-fetch boundaries and guard against overlapping requests
-        if (entry.isIntersecting && !loading) {
-          if (stats && jobs.length >= stats.total_stored_jobs) return;
+        if (
+          entry.isIntersecting &&
+          !loading &&
+          !isFetchingRef.current &&
+          hasMore
+        ) {
+          isFetchingRef.current = true;
           setOffset((prev) => prev + limit);
         }
       },
@@ -74,15 +85,17 @@ export default function Dashboard() {
     observer.observe(loaderRef.current);
 
     return () => observer.disconnect();
-  }, [loading, limit, stats, jobs.length]);
+  }, [loading, limit, hasMore]);
 
   // ── Fetch jobs on mount or filter change ───────────────────────────────────
   useEffect(() => {
     if (debouncedKeyword && debouncedKeyword.length < 2) return;
+    if (offset > 0 && !hasMore) return; // double guard
 
     const currentRequestId = ++requestIdRef.current;
 
     setLoading(true);
+    isFetchingRef.current = true;
     setError(null);
     
     fetchJobs({ source, keyword: debouncedKeyword, limit, offset, days })
@@ -92,6 +105,14 @@ export default function Dashboard() {
             setJobs(data);
           } else {
             setJobs((prev) => [...prev, ...data]);
+          }
+          
+          if (offset === 0 && data.length === 0) {
+            setHasMore(false);
+          } else if (data.length < limit) {
+            setHasMore(false);
+          } else {
+            setHasMore(true);
           }
         }
       })
@@ -103,6 +124,7 @@ export default function Dashboard() {
       .finally(() => {
         if (currentRequestId === requestIdRef.current) {
           setLoading(false);
+          isFetchingRef.current = false;
         }
       });
   }, [source, debouncedKeyword, limit, offset, days]);
@@ -151,7 +173,7 @@ export default function Dashboard() {
           {!loading && !error && stats && (
             <div className="mb-4">
               <p className="text-sm text-gray-600 font-medium">
-                Showing {jobs.length} of {stats.total_stored_jobs} jobs
+                Showing {jobs.length} {hasMore ? "" : "(all)"} of {stats.total_stored_jobs} stored jobs
               </p>
               <p className="text-xs text-gray-500 mt-0.5">
                 {debouncedKeyword || source 
@@ -161,11 +183,11 @@ export default function Dashboard() {
             </div>
           )}
 
-          {loading && (
+          {loading && jobs.length === 0 && (
             <p className="text-center mt-10 text-gray-500">Loading...</p>
           )}
 
-          {!loading && error && (
+          {error && jobs.length === 0 && (
             <p className="text-center mt-10 text-red-500">{error}</p>
           )}
 
@@ -173,7 +195,7 @@ export default function Dashboard() {
             <p className="text-center mt-10 text-gray-500">No jobs found</p>
           )}
 
-          {!loading && !error && jobs.length > 0 && (
+          {jobs.length > 0 && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {jobs.map((job) => (
@@ -181,7 +203,19 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {stats && jobs.length < stats.total_stored_jobs && (
+              {loading && (
+                <p className="text-center mt-4 text-gray-500">Loading more...</p>
+              )}
+
+              {!hasMore && (
+                <p className="text-center mt-6 mb-4 text-gray-500 text-sm">No more jobs</p>
+              )}
+
+              {error && (
+                <p className="text-center mt-8 mb-4 text-red-500">{error}</p>
+              )}
+
+              {hasMore && (
                 <div ref={loaderRef} className="h-4 w-full mt-4"></div>
               )}
             </>
