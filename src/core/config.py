@@ -93,17 +93,17 @@ class Config:
     # ------------------------------------------------------------------
     # Paths
     # ------------------------------------------------------------------
+    DATA_PATH: str = field(
+        default_factory=lambda: os.getenv("DATA_DIR", str(_PROJECT_ROOT / "data"))
+    )
     DB_PATH: str = field(
-        default_factory=lambda: str(_PROJECT_ROOT / "data" / "jobs.db")
+        default_factory=lambda: str(Path(os.getenv("DATA_DIR", str(_PROJECT_ROOT / "data"))) / "jobs.db")
     )
     LOG_PATH: str = field(
-        default_factory=lambda: str(_PROJECT_ROOT / "logs" / "logs.txt")
-    )
-    DATA_PATH: str = field(
-        default_factory=lambda: str(_PROJECT_ROOT / "data")
+        default_factory=lambda: str(Path(os.getenv("DATA_DIR", str(_PROJECT_ROOT / "data"))).parent / "logs" / "logs.txt")
     )
     LAST_RUN_PATH: str = field(
-        default_factory=lambda: str(_PROJECT_ROOT / "data" / "last_run.json")
+        default_factory=lambda: str(Path(os.getenv("DATA_DIR", str(_PROJECT_ROOT / "data"))) / "last_run.json")
     )
 
     # ------------------------------------------------------------------
