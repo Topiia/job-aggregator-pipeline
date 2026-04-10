@@ -147,7 +147,7 @@ export default function Dashboard() {
         {/* Header */}
         <header className="sticky top-0 z-50 backdrop-blur-md bg-theme-surface/70 py-4 -mx-4 px-4 sm:mx-0 sm:px-6 rounded-b-xl sm:rounded-xl shadow-sm border border-theme-muted/20 flex flex-col sm:flex-row justify-between items-center gap-4 transition-all duration-300">
           <div className="flex items-center gap-3">
-            <img src="/favicon.ico" alt="Topia Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
+            <img src="/topia_job_aggregator.ico" alt="Topia Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
             <div>
               <h1 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-theme-glow1 to-theme-glow2">
                 Topia Job Aggregator
