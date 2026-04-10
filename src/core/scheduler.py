@@ -84,6 +84,15 @@ def can_run_today() -> bool:
         return True
 
     now = datetime.now(timezone.utc)
+
+    # Self-healing: Prevent negative elapsed time from corrupt/future timestamps
+    if last_run > now:
+        logger.warning(
+            "Self-healing: Invalid future last_run detected (%s). Normalizing to current time.",
+            last_run.strftime(_DATE_FORMAT)
+        )
+        last_run = now
+
     same_day = last_run.date() == now.date()
     within_20h = (now - last_run) < timedelta(hours=20)
 
