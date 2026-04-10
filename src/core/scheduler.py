@@ -7,7 +7,7 @@ Maintains execution state via tracking 'data/last_run.json'.
 
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from src.core.config import config
@@ -39,7 +39,10 @@ def get_last_run() -> datetime | None:
             data = json.load(f)
             last_run_str = data.get("last_run")
             if last_run_str:
-                return datetime.strptime(last_run_str, _DATE_FORMAT)
+                last_run = datetime.strptime(last_run_str, _DATE_FORMAT)
+                if last_run.tzinfo is None:
+                    last_run = last_run.replace(tzinfo=timezone.utc)
+                return last_run
     except Exception as exc:
         logger.error("Failed to parse last_run file: %s", exc)
 
@@ -54,7 +57,7 @@ def update_last_run() -> None:
     last_run_path = Path(config.LAST_RUN_PATH)
     last_run_path.parent.mkdir(parents=True, exist_ok=True)
 
-    now_str = datetime.now().strftime(_DATE_FORMAT)
+    now_str = datetime.now(timezone.utc).strftime(_DATE_FORMAT)
     try:
         with open(last_run_path, "w", encoding="utf-8") as f:
             json.dump({"last_run": now_str}, f, indent=2)
@@ -80,7 +83,7 @@ def can_run_today() -> bool:
         logger.info("No previous run detected. Execution allowed.")
         return True
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     same_day = last_run.date() == now.date()
     within_20h = (now - last_run) < timedelta(hours=20)
 
