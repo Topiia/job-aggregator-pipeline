@@ -206,15 +206,20 @@ export default function Dashboard() {
 
         {/* Job Grid */}
         <section>
-          {!loading && !error && stats && (
+          {!loading && !error && (
             <div className="mb-4">
-              <p className="text-sm text-theme-text font-medium">
-                Showing {jobs.length} {hasMore ? "" : "(all)"} of {stats.total_stored_jobs} stored jobs
-              </p>
+              {jobs.length > 0 ? (
+                <p className="text-sm text-theme-text font-medium">
+                  Showing {jobs.length}{hasMore ? " results" : " results (all loaded)"}
+                  {source && ` from ${source}`}
+                  {` · last ${
+                    days ? `${days} days` :
+                    (debouncedKeyword || source) ? "90 days" : "10 days"
+                  }`}
+                </p>
+              ) : null}
               <p className="text-xs text-theme-muted mt-0.5 font-medium">
-                {debouncedKeyword || source 
-                  ? "Showing results from last 90 days" 
-                  : "Showing recent jobs (last 10 days)"}
+                {stats ? `${stats.total_stored_jobs} total jobs in database` : ""}
               </p>
             </div>
           )}
@@ -228,7 +233,13 @@ export default function Dashboard() {
           )}
 
           {!loading && !error && jobs.length === 0 && (
-            <p className="text-center mt-10 text-theme-muted font-medium">No jobs found</p>
+            <p className="text-center mt-10 text-theme-muted font-medium">
+              {source
+                ? `No recent jobs found for ${source}`
+                : debouncedKeyword
+                ? `No results for "${debouncedKeyword}"`
+                : "No jobs found"}
+            </p>
           )}
 
           {jobs.length > 0 && (
