@@ -127,7 +127,7 @@ def _map_arbeitnow(raw: dict[str, Any]) -> dict[str, Any]:
         "description": _clean_html(raw.get("description", "")),
         "url": _clean_str(raw.get("url")),
         "tags": _normalise_tags(raw.get("tags")),
-        "posted_at": _clean_str(raw.get("created_at")),
+        "posted_at": _parse_epoch(raw.get("created_at")),
     }
 
 
