@@ -7,7 +7,7 @@ Maintains execution state via tracking 'data/last_run.json'.
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.core.config import config
@@ -65,22 +65,30 @@ def update_last_run() -> None:
 
 def can_run_today() -> bool:
     """
-    Evaluate if the system is permitted to run today based on the last run state.
-    
-    Logic:
-    - if no last_run -> allow
-    - if last_run < today -> allow
-    - if last_run is today -> BLOCK
+    Evaluate if the system is permitted to run based on a strict dual-condition guard.
+
+    Rules (BOTH must be false to allow execution):
+    ─────────────────────────────────────────────
+    1. Calendar Day Guard  → Block if last_run occurred on today's UTC date.
+    2. Minimum Gap Guard   → Block if last_run occurred within the last 20 hours.
+
+    This prevents edge cases where two runs happen at 11:59 PM and 12:01 AM 
+    on consecutive calendar days (different days, but only 2 minutes apart).
     """
     last_run = get_last_run()
     if not last_run:
+        logger.info("No previous run detected. Execution allowed.")
         return True
 
-    today = datetime.now().date()
-    if last_run.date() >= today:
+    now = datetime.utcnow()
+    same_day = last_run.date() == now.date()
+    within_20h = (now - last_run) < timedelta(hours=20)
+
+    if same_day or within_20h:
+        hours_elapsed = (now - last_run).total_seconds() / 3600
         logger.warning(
-            "Execution blocked: System already ran today. Last run tracked at %s", 
-            last_run.strftime(_DATE_FORMAT)
+            "Execution blocked: same_day=%s, within_20h=%s (%.1fh elapsed since %s)",
+            same_day, within_20h, hours_elapsed, last_run.strftime(_DATE_FORMAT),
         )
         return False
 
