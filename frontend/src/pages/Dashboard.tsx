@@ -12,6 +12,18 @@ export default function Dashboard() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+
+    if (meta) {
+      const metaColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("--theme-meta")
+        .trim();
+
+      if (metaColor) {
+        meta.setAttribute("content", metaColor);
+      }
+    }
   }, [theme]);
 
   // ── State ──────────────────────────────────────────────────────────────────

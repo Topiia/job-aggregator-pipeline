@@ -12,6 +12,7 @@
     --theme-glow1: #4f46e5; /* indigo-500 */
     --theme-glow2: #a855f7; /* purple-500 */
     --theme-glow3: #ec4899; /* pink-500 */
+    --theme-meta: #4f46e5; /* primary brand color */
   }
 
   [data-theme="theme2"] {
@@ -22,6 +23,7 @@
     --theme-glow1: #da70d6; /* orchid */
     --theme-glow2: #ffb6c1; /* light pink */
     --theme-glow3: #dba6c4; /* deeper pink */
+    --theme-meta: #d946ef; /* primary brand color */
   }
 
   [data-theme="theme3"] {
@@ -32,6 +34,7 @@
     --theme-glow1: #10b981; /* emerald */
     --theme-glow2: #8b5cf6; /* royal amethyst-ish / violet-500 */
     --theme-glow3: #6ee7b7; /* lighter green */
+    --theme-meta: #059669; /* primary brand color */
   }
 
   body {
