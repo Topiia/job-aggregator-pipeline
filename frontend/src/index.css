@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root,
+  [data-theme="theme1"] {
+    --theme-bg: #f8f6f0; /* chiffon-ish */
+    --theme-surface: #ffffff;
+    --theme-text: #2f2a24; /* toffee-dark */
+    --theme-muted: #8b8072; /* dune */
+    --theme-glow1: #4f46e5; /* indigo-500 */
+    --theme-glow2: #a855f7; /* purple-500 */
+    --theme-glow3: #ec4899; /* pink-500 */
+  }
+
+  [data-theme="theme2"] {
+    --theme-bg: #fdfafb; /* magnolia */
+    --theme-surface: #ffffff;
+    --theme-text: #4a2f40; /* hellebore dark */
+    --theme-muted: #d4a5b4; /* camellia */
+    --theme-glow1: #da70d6; /* orchid */
+    --theme-glow2: #ffb6c1; /* light pink */
+    --theme-glow3: #dba6c4; /* deeper pink */
+  }
+
+  [data-theme="theme3"] {
+    --theme-bg: #f0fdf4; /* mint whisper */
+    --theme-surface: #ffffff;
+    --theme-text: #064e3b; /* dark evergreen */
+    --theme-muted: #34d399; /* emerald greenish */
+    --theme-glow1: #10b981; /* emerald */
+    --theme-glow2: #8b5cf6; /* royal amethyst-ish / violet-500 */
+    --theme-glow3: #6ee7b7; /* lighter green */
+  }
+
+  body {
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+  }
+}

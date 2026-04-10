@@ -136,8 +136,13 @@ def get_jobs(
         # ISO-8601 strings allow direct lexicographical comparison securely natively
         query = query.filter(Job.posted_at >= cutoff.isoformat())
 
+        from sqlalchemy import func
+
         if source:
-            query = query.filter(Job.source == source)
+            # Harden: strip whitespace and normalize case on both sides
+            query = query.filter(
+                func.trim(func.lower(Job.source)) == source.strip().lower()
+            )
 
         if keyword:
             kw = f"%{keyword.lower()}%"
@@ -149,10 +154,17 @@ def get_jobs(
                 )
             )
 
+        # Deterministic sort: stable across all requests and pagination offsets
+        # id.desc() acts as tie-breaker when posted_at values are identical
+        query = query.order_by(
+            Job.posted_at.desc(),
+            Job.id.desc()
+        )
+
         jobs = (
-            query.order_by(Job.posted_at.desc())
-            .limit(limit)
+            query.limit(limit)
             .offset(offset)
+
             .all()
         )
 
