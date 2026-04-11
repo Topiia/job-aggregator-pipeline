@@ -11,12 +11,16 @@ from pathlib import Path
 from typing import Dict, Tuple
 import os
 
+from dotenv import load_dotenv
+
 
 # ---------------------------------------------------------------------------
 # Project root is two levels up from this file:
 #   src/core/config.py  →  job_aggregator/
 # ---------------------------------------------------------------------------
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
+load_dotenv(_PROJECT_ROOT / ".env")
 
 
 @dataclass(frozen=True)
@@ -89,6 +93,16 @@ class Config:
         "Accept": "application/json, text/html",
         "Accept-Language": "en-US,en;q=0.9",
     })
+
+    # ------------------------------------------------------------------
+    # Database
+    # ------------------------------------------------------------------
+    MONGO_URI: str = field(
+        default_factory=lambda: os.getenv("MONGO_URI", "")
+    )
+    MONGO_DB_NAME: str = field(
+        default_factory=lambda: os.getenv("MONGO_DB_NAME", "job_aggregator")
+    )
 
     # ------------------------------------------------------------------
     # Paths

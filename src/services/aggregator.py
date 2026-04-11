@@ -15,8 +15,7 @@ from src.core.rate_limiter import (
     RateLimitExhausted,
     RuntimeLimitExceeded,
 )
-from src.db.database import init_db
-from src.db.operations import upsert_jobs
+from src.db.mongo import get_collection, upsert_jobs
 from src.services.normalizer import normalize_jobs
 
 logger = get_logger(__name__)
@@ -31,9 +30,9 @@ def run_aggregation() -> dict[str, Any]:
     """
     logger.info("=== Starting Aggregation Pipeline ===")
     
-    # 1. Initialize DB and RateLimiter
+    # 1. Initialize DB Collection and RateLimiter
     try:
-        init_db()
+        get_collection()
     except Exception as exc:
         logger.error("Failed to initialize database: %s", exc)
         return _build_summary(stop_reason="DB initialization failed")
@@ -98,19 +97,19 @@ def run_aggregation() -> dict[str, Any]:
             stop_reason = f"Critical HTTP Error (429/403) from {source_name}: {exc}"
             logger.critical(stop_reason)
             sources_failed += 1
-            break  # Immediate global stop
+            continue  # Continue to next source instead of failing entire pipeline
             
         except RateLimitExhausted as exc:
             stop_reason = f"Rate limit exhausted during {source_name}: {exc}"
             logger.warning(stop_reason)
             sources_failed += 1
-            break  # Immediate global stop
+            continue  # continue
             
         except RuntimeLimitExceeded as exc:
             stop_reason = f"Runtime limit exceeded during {source_name}: {exc}"
             logger.warning(stop_reason)
             sources_failed += 1
-            break  # Immediate global stop
+            continue  # continue
             
         except Exception as exc:
             # 4. Handle other errors: log and skip source (continue to next)

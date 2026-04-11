@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class JobResponse(BaseModel):
-    id: int
+    id: str
     title: str
     company: str
     location: str

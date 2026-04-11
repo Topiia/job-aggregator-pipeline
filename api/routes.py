@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from api.schemas import JobResponse, JobsListResponse, StatsResponse
 from src.core.logger import get_logger
-from src.db import operations
+from src.db.mongo import get_jobs as m_get_jobs, get_job_by_id as m_get_job_by_id, get_stats as m_get_stats
 
 logger = get_logger(__name__)
 
@@ -35,7 +35,7 @@ def get_jobs(
     if limit < 1:
         limit = 1
 
-    jobs = operations.get_jobs(source=source, keyword=keyword, limit=limit, offset=offset, days=days)
+    jobs = m_get_jobs(source=source, keyword=keyword, limit=limit, offset=offset, days=days)
     
     logger.info("Returning %d jobs", len(jobs))
     return {
@@ -45,18 +45,18 @@ def get_jobs(
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
-def get_job_by_id(job_id: int):
+def get_job_by_id(job_id: str):
     """
     Retrieve a singular specific Job execution via ID strictly bounded.
     """
-    logger.info("Hit /jobs/%d", job_id)
+    logger.info("Hit /jobs/%s", job_id)
     
-    job = operations.get_job_by_id(job_id)
+    job = m_get_job_by_id(str(job_id))
     if not job:
-        logger.warning("/jobs/%d -> NOT FOUND", job_id)
+        logger.warning("/jobs/%s -> NOT FOUND", job_id)
         raise HTTPException(status_code=404, detail="Job not found")
         
-    logger.info("Returning Job %d successfully", job_id)
+    logger.info("Returning Job %s successfully", job_id)
     return job
 
 
@@ -67,7 +67,7 @@ def get_stats():
     """
     logger.info("Hit /stats")
     
-    stats_data = operations.get_stats()
+    stats_data = m_get_stats()
     
     # Map internal dictionary format to StatsResponse explicitly defined representation.
     payload = {

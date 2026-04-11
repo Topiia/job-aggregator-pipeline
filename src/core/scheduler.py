@@ -13,7 +13,7 @@ from pathlib import Path
 from src.core.config import config
 from src.core.logger import get_logger
 from src.services.aggregator import run_aggregation
-from scripts.export_data import export_data
+from src.db.mongo import get_mongo_last_run, update_mongo_last_run
 
 logger = get_logger(__name__)
 
@@ -61,9 +61,15 @@ def update_last_run() -> None:
     try:
         with open(last_run_path, "w", encoding="utf-8") as f:
             json.dump({"last_run": now_str}, f, indent=2)
-        logger.info("Updated last execution run state to: %s", now_str)
+        logger.info("Updated local last execution run state to: %s", now_str)
     except Exception as exc:
-        logger.error("Failed to update last execution run state: %s", exc)
+        logger.error("Failed to update local last execution run state: %s", exc)
+
+    try:
+        update_mongo_last_run()
+        logger.info("Updated Mongo system_state guard successfully.")
+    except Exception as exc:
+        logger.error("Failed to update Mongo system_state guard: %s", exc)
 
 
 def can_run_today() -> bool:
@@ -78,12 +84,24 @@ def can_run_today() -> bool:
     This prevents edge cases where two runs happen at 11:59 PM and 12:01 AM 
     on consecutive calendar days (different days, but only 2 minutes apart).
     """
-    last_run = get_last_run()
-    if not last_run:
-        logger.info("No previous run detected. Execution allowed.")
+    local_last_run = get_last_run()
+    
+    try:
+        mongo_last_run = get_mongo_last_run()
+    except Exception as exc:
+        logger.error("Failed to read Mongo system_state guard: %s", exc)
+        mongo_last_run = None
+        
+    last_runs = [d for d in (local_last_run, mongo_last_run) if d is not None]
+
+    if not last_runs:
+        logger.info("No previous run detected locally or in Mongo. Execution allowed.")
         return True
 
     now = datetime.now(timezone.utc)
+    
+    # Pick the most recent run time across all guards for strict enforcement
+    last_run = max(last_runs)
 
     # Self-healing: Prevent negative elapsed time from corrupt/future timestamps
     if last_run > now:
@@ -127,9 +145,7 @@ def run_daily_pipeline() -> None:
     summary = run_aggregation()
     
     if summary.get("stop_reason") is None:
-        logger.info("Aggregator finished cleanly. Executing DB export logic.")
-        export_data()
-        logger.info("System exported databases to flat files securely.")
+        logger.info("Aggregator finished cleanly.")
         
         logger.info("Recording successful run.")
         update_last_run()
