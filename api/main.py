@@ -23,12 +23,14 @@ app = FastAPI(
 def startup_event():
     _ensure_indexes(get_collection())
 
-# Standard permissive read-only CORS implementation.
+# Restrict CORS strictly to the deployed Vercel frontend domain.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://job-aggregator-pipeline.vercel.app"
+    ],
     allow_credentials=True,
-    allow_methods=["GET", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
