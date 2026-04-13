@@ -23,10 +23,11 @@ app = FastAPI(
 def startup_event():
     _ensure_indexes(get_collection())
 
-# Restrict CORS strictly to the deployed Vercel frontend domain.
+# Restrict CORS to the custom production frontend domain and Vercel deployment.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://jobs.topiiaa.site",
         "https://job-aggregator-pipeline.vercel.app"
     ],
     allow_credentials=True,
