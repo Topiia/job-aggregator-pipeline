@@ -49,23 +49,23 @@ def get_collection() -> Collection:
     db = _client[config.MONGO_DB_NAME]
     _collection = db["jobs"]
     
-    # 2. Enforce MongoDB Index
-    _ensure_indexes(_collection)
-    
     return _collection
 
 
 def _ensure_indexes(coll: Collection) -> None:
     """Create necessary unique and performance indexes."""
     logger.info("Ensuring MongoDB indexes...")
-    # 2. Enforce MongoDB Index: Unique constraint on (source, external_id)
-    coll.create_index(
-        [("source", 1), ("external_id", 1)],
-        unique=True
-    )
-    # Additional indexes for query performance
-    coll.create_index([("posted_at", -1)])
-    coll.create_index([("scraped_at", -1)])
+    try:
+        # 2. Enforce MongoDB Index: Unique constraint on (source, external_id)
+        coll.create_index(
+            [("source", 1), ("external_id", 1)],
+            unique=True
+        )
+        # Additional indexes for query performance
+        coll.create_index([("posted_at", -1)])
+        coll.create_index([("scraped_at", -1)])
+    except Exception as e:
+        raise RuntimeError(f"Index creation failed: {e}")
     
 
 # ---------------------------------------------------------------------------

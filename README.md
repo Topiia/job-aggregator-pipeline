@@ -59,3 +59,15 @@ venv\Scripts\python.exe -m uvicorn api.main:app --reload
 cd frontend
 npm run dev
 ```
+
+## ⚠️ Troubleshooting
+
+**Production Index Creation Failure:**
+If index creation fails in production (causing the app to crash on startup), the underlying data violates the unique constraint limits.
+→ Existing data must be cleaned (duplicates removed manually) OR the collection must be reset.
+
+**Data Restoration:**
+If you have dropped your MongoDB collection to fix duplicate data index collision and need to restore data from `data/jobs.json`, run the idempotent one-time restoration script:
+```bash
+venv\Scripts\python.exe scripts\import_json_to_mongo.py
+```

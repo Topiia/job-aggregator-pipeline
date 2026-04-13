@@ -11,12 +11,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router
 from api.middleware import RateLimitMiddleware
+from src.db.mongo import get_collection, _ensure_indexes
 
 app = FastAPI(
     title="Job Aggregator API",
     description="Read-only interface for aggregated daily job feeds.",
     version="1.0.0",
 )
+
+@app.on_event("startup")
+def startup_event():
+    _ensure_indexes(get_collection())
 
 # Standard permissive read-only CORS implementation.
 app.add_middleware(
