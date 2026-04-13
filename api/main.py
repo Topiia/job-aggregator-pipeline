@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router
-from api.middleware import RateLimitMiddleware
+from api.middleware import RateLimitMiddleware, BotProtectionMiddleware
 from src.db.mongo import get_collection, _ensure_indexes
 
 app = FastAPI(
@@ -39,3 +39,6 @@ app.include_router(router)
 
 # Enforce globally scoped memory-backed IP rate limits aggressively restricting spam
 app.add_middleware(RateLimitMiddleware)
+
+# Block bots and automated tools missing or forging User-Agent headers
+app.add_middleware(BotProtectionMiddleware)
